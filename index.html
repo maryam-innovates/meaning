@@ -3,404 +3,472 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Meaning.ai</title>
+    <title>Welcome To Meaning</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Use Inter font, as per standard instruction -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles based on the images, emphasizing cute, rounded, and pink aesthetic */
-        body {
-            font-family: 'Inter', sans-serif;
-            transition: background-image 1s ease-in-out;
+        /* Loading Screen Styles */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fdfcf0; /* Soft cream */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+
+        .loader-heart {
+            font-size: 50px;
+            animation: bounce-heart 0.8s infinite alternate cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #ffafcc;
+            filter: drop-shadow(0 5px 15px rgba(255, 175, 204, 0.4));
+        }
+
+        @keyframes bounce-heart {
+            from { transform: translateY(0) scale(1); }
+            to { transform: translateY(-20px) scale(1.2); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-family: ui-sans-serif, system-ui, sans-serif;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: #ffafcc;
+            font-size: 12px;
+            animation: pulse-text 1.5s infinite;
+        }
+
+        @keyframes pulse-text {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Define the full-screen, random background */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             background-size: cover;
             background-position: center;
-            background-attachment: fixed;
+            background-repeat: no-repeat;
+            transition: background-image 0.8s ease-in-out; 
+            z-index: -1; 
+        }
+        
+        .content-area {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 98vw; 
+            margin-left: auto;
+            margin-right: auto;
+            padding: 1rem;
         }
 
-        /* Custom color palette approximation */
-        .pink-primary { background-color: #ffb6c1; } /* Light Pink */
-        .pink-text { color: #ff69b4; } /* Hot Pink/Deep Pink */
-        .pink-border { border-color: #ff69b4; }
-
-        /* Style for the filter buttons to match the aesthetic */
-        .filter-btn {
-            @apply inline-flex items-center px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 cursor-pointer;
-            white-space: nowrap;
-            color: #64748b; /* slate-500 */
-            background-color: #fce7f3; /* pink-100 */
-            border: 2px solid transparent;
-        }
-        .filter-btn:hover {
-            @apply shadow-md scale-[1.02];
-            background-color: #fbcfe8; /* pink-200 */
-        }
-        .filter-btn.active {
-            @apply text-white font-semibold shadow-lg;
-            background-color: #ff69b4; /* Hot Pink/Deep Pink */
-            border: 2px solid #ff1493; /* Deepest Pink */
+        .card {
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border-radius: 1.5rem; 
+            display: flex; 
+            flex-direction: column;
+            background-size: cover;
+            background-position: center;
+            border: none; 
+            min-height: 280px; 
         }
 
-        /* Card styles */
-        .meaning-card {
-            @apply p-4 bg-white rounded-xl shadow-lg transition-all duration-300 transform cursor-pointer;
-            min-height: 180px;
-        }
-        .meaning-card:hover {
-            @apply shadow-xl ring-4 ring-pink-300 scale-[1.03];
-        }
-        .meaning-card-title {
-            @apply text-lg font-semibold mb-1;
-            color: #ff69b4; /* Hot Pink */
-        }
-        .meaning-card-subtitle {
-            @apply text-sm text-gray-500 italic;
-        }
-        .meaning-card-tags {
-             @apply mt-2 text-xs font-medium text-pink-500 uppercase;
-        }
-        .meaning-card-icon {
-            font-size: 2rem; /* Large icon size */
-            line-height: 1;
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
         }
 
-        /* Modal styles */
+        /* Light Glassmorphism for card info */
+        .card-info {
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+        }
+        
         .modal-overlay {
-            z-index: 1000;
-            backdrop-filter: blur(8px);
-            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white overlay */
-            transition: opacity 0.3s ease;
-        }
-        .modal-content {
-            max-width: 90%;
-            max-height: 90%;
-            overflow-y: auto;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4); 
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            backdrop-filter: blur(8px); 
+            padding: 1rem;
+            animation: fadeIn 0.3s ease-out;
         }
 
+        #modal-content {
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background-size: cover;
+            background-position: center;
+            border: none;
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.9);
+            opacity: 0;
+        }
+
+        .modal-overlay.active #modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Fullscreen Mode Overrides */
+        .is-fullscreen {
+            max-width: 100vw !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important; 
+            display: flex !important;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: black !important;
+            background-image: none !important; 
+        }
+
+        .is-fullscreen #modal-img-container {
+            width: 100% !important;
+            height: 100% !important;
+            flex-grow: 1; 
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .is-fullscreen #modal-image {
+            max-width: 100%;
+            max-height: 80vh; 
+            object-fit: contain; 
+        }
+
+        .is-fullscreen #modal-text-area {
+            width: 100%;
+            max-width: 100%;
+            margin-top: 0;
+            border-radius: 0;
+            background: rgba(0, 0, 0, 0.6) !important;
+            color: white !important;
+            border: none !important;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+        }
+
+        .is-fullscreen #modal-desc {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        .is-fullscreen #modal-inner-title {
+            color: white !important;
+        }
+
+        #fullscreen-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 60;
+        }
+
+        .text-shadow-lg {
+            text-shadow: 2px 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .glass-panel-light {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        .responsive-grid {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            width: 100%;
+            margin-bottom: 5rem;
+        }
+        @media (min-width: 640px) { .responsive-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (min-width: 1024px) { .responsive-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        @media (min-width: 1280px) { .responsive-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        @media (min-width: 1536px) { .responsive-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+
+        .close-symbol {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 100;
+            cursor: pointer;
+            padding: 0.6rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .close-symbol:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        /* Heart Animation */
+        @keyframes heartFly {
+            0% { transform: translateY(0) scale(1) rotate(0); opacity: 1; }
+            100% { transform: translateY(-200px) scale(0) rotate(45deg); opacity: 0; }
+        }
+        .heart-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 100;
+            color: #ffafcc;
+            font-size: 24px;
+            animation: heartFly 1.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
+<body class="bg-gray-100 font-sans antialiased overflow-x-hidden">
 
-<body id="app-body">
-    <!-- Header/Navigation -->
-    <header class="p-4 md:p-8 sticky top-0 bg-white/90 backdrop-blur-sm z-50 shadow-md">
-        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <!-- Logo/Title -->
-            <div class="flex items-center text-3xl font-bold pink-text">
-                <span role="img" aria-label="Envelope" class="text-4xl mr-2">💌</span>
-                Welcome to Meaning.ai
-            </div>
+    <!-- Pre-loader Screen -->
+    <div id="loading-screen">
+        <div class="loader-heart">❤</div>
+        <div class="loading-text">curating magic...</div>
+    </div>
 
-            <!-- Classifiers/Filters -->
-            <div id="filter-container" class="flex flex-wrap justify-center gap-2">
-                <button data-filter="all" class="filter-btn active">
-                    <span class="mr-1">💖</span> All
-                </button>
-                <!-- These buttons will be generated by JS based on card data -->
-            </div>
-        </div>
-    </header>
+    <div id="main-canvas" class="background-container"></div>
 
-    <!-- Main Content Grid -->
-    <main class="max-w-6xl mx-auto p-4 md:p-8">
-        <div id="meaning-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Meaning Cards will be injected here -->
-        </div>
-    </main>
+    <div class="content-area">
+        <header class="text-center mb-12 mt-12 sm:mt-24">
+            <h1 class="text-6xl sm:text-8xl md:text-9xl font-black text-white text-shadow-lg tracking-tighter uppercase italic leading-none select-none">Meaning</h1>
+            <p class="text-white font-bold tracking-[0.8em] mt-6 opacity-80 uppercase text-[10px] sm:text-xs">Archive One Hundred • Aesthetic Gallery</p>
+        </header>
 
-    <!-- Modal for Detailed View -->
-    <div id="meaning-modal" class="modal-overlay hidden fixed inset-0 flex items-center justify-center p-4">
-        <div id="modal-content-container" class="modal-content w-full md:w-4/5 lg:w-3/5 xl:w-2/5 bg-white rounded-2xl shadow-2xl p-6 md:p-8 relative transform scale-100 transition-transform duration-300">
-            <!-- Modal close button -->
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-500 hover:text-pink-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <div id="cards-container" class="responsive-grid px-4 sm:px-10"></div>
+    </div>
+    
+    <div id="image-modal" class="modal-overlay" onclick="closeModal()">
+        <div id="modal-content" class="rounded-[3rem] shadow-[0_35px_60px_-15px_rgba(0,0,0,0.5)] p-6 sm:p-10 relative overflow-hidden" onclick="event.stopPropagation()">
+            
+            <button onclick="closeModal()" class="close-symbol" aria-label="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
 
-            <!-- Content Placeholder -->
-            <div id="modal-image-placeholder" class="mb-4 rounded-lg overflow-hidden h-40 md:h-64 flex items-center justify-center bg-gray-100">
-                <img id="modal-image" src="" alt="Associated image" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/ffe4e1/ff69b4?text=Image+Not+Found';" />
-            </div>
+            <button id="fullscreen-btn" onclick="triggerHeartEffect(event); toggleFullScreen();" 
+                    class="p-2 transition duration-500 transform hover:scale-125 text-white drop-shadow-lg" aria-label="Like and Toggle Fullscreen">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-10 h-10 sm:w-12 sm:h-12 text-pink-400 filter drop-shadow-[0_0_10px_rgba(244,114,182,0.8)]">
+                    <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.5 3c1.38 0 2.685.56 3.645 1.56.96-1 2.265-1.56 3.645-1.56 2.786 0 5.25 2.322 5.25 5.25 0 3.924-2.438 7.11-4.73 9.27a25.115 25.115 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+                </svg>
+            </button>
 
-            <h2 id="modal-title" class="text-3xl font-bold text-center mb-2 pink-text"></h2>
-            <p id="modal-meaning" class="text-xl text-center mb-4 italic text-gray-700"></p>
-            <div id="modal-description" class="text-base text-gray-600 leading-relaxed border-t pt-4 border-pink-200"></div>
-            <div id="modal-tags" class="mt-4 text-xs font-medium text-center text-pink-500 uppercase"></div>
+            <div id="modal-img-container" class="relative rounded-[2rem] overflow-hidden transition-all duration-700 shadow-2xl border-4 border-white/30">
+                <img id="modal-image" src="" alt="Card Detail" class="w-full aspect-[4/3] object-cover">
+            </div>
+            
+            <div id="modal-text-area" class="mt-6 p-6 rounded-3xl glass-panel-light text-center">
+                <h3 id="modal-inner-title" class="text-2xl sm:text-4xl font-black italic uppercase tracking-tighter mb-3 text-gray-900"></h3>
+                <p id="modal-desc" class="text-sm sm:text-lg text-gray-600 font-medium leading-relaxed"></p>
+                <div class="mt-4 pt-4 border-t border-gray-200/50 flex justify-center gap-4 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">
+                    <span>Aesthetic</span>
+                    <span>•</span>
+                    <span>Curated</span>
+                    <span>•</span>
+                    <span>Meaning</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Global variables for Firebase configuration (must be present even if unused in this simple demo)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // Data for the meaning cards (mimicking the content in the images)
-        const meanings = [
-            {
-                id: 1,
-                icon: "🌙",
-                title: `"The moon is lovely, isn't it?"`,
-                meaning: `"I love you." (in a poetic, indirect way)`,
-                tags: ["Japanese", "Confession"],
-                full_description: "A famous translation of 'I love you' by the Japanese novelist Soseki Natsume. It's a reserved, poetic way to express deep affection without explicit declaration.",
-                image_url: "https://placehold.co/600x400/f0f8ff/4682b4?text=Moonlit+Scenery"
-            },
-            {
-                id: 2,
-                icon: "💘", // Changed icon to be less intense, but kept the original feeling
-                title: `"I want to eat your pancreas"`,
-                meaning: `"I want to be with you forever"`,
-                tags: ["Japanese", "Forever Like"],
-                full_description: "From the Japanese novel and film *Kimi no Suizō o Tabetai*. The phrase conveys a deep, beautiful sentiment, believed that consuming part of someone will allow their spirit to live with you forever. It implies a desire to be with them for eternity.",
-                image_url: "https://placehold.co/600x400/fff0f5/ff69b4?text=Pancreas+Anime+Scene"
-            },
-            {
-                id: 3,
-                icon: "☀️",
-                title: `"The sunrise is beautiful, isn't it?"`,
-                meaning: `"I love you, so don't leave me"`,
-                tags: ["Japanese", "Forever Like"],
-                full_description: "A desperate and bittersweet confession. While acknowledging beauty, the underlying message is a fear of separation, hoping the shared moment of beauty will bind them together.",
-                image_url: "https://placehold.co/600x400/fffacd/daa520?text=Sunrise+View"
-            },
-            {
-                id: 4,
-                icon: "🌅",
-                title: `"The sunset is beautiful, isn't it?"`,
-                meaning: `"I love you, but I'm letting go"`,
-                tags: ["Japanese", "Goodbye"],
-                full_description: "The phrase is often used to mean, 'I love you, but I'm letting go.' It's a bittersweet sentiment, acknowledging the beauty of a moment while understanding that it must come to an end. It is a romantic and respectful way to say goodbye.",
-                image_url: "https://placehold.co/600x400/faebd7/cd5c5c?text=Sunset+View" // Example from the fourth uploaded image
-            },
-            {
-                id: 5,
-                icon: "🍜",
-                title: `"Want to eat ramen together?"`,
-                meaning: `A casual date invitation`,
-                tags: ["Korean", "Confession"],
-                full_description: "In Korean dramas and culture (e.g., 'Ramyun meokgo gallae?'), this phrase is often a subtly suggestive or casual invitation that means 'Do you want to come back to my place?' or just a simple, low-pressure first date.",
-                image_url: "https://placehold.co/600x400/ffe4e1/a52a2a?text=Ramen+Bowl"
-            },
-            {
-                id: 6,
-                icon: "🚩",
-                title: `"Raising a white flag"`,
-                meaning: `Giving up on love or surrendering emotionally`,
-                tags: ["Japanese", "Goodbye"],
-                full_description: "A direct metaphor for surrender, meaning the speaker is emotionally exhausted or acknowledging that the relationship battle is lost, choosing to wave the white flag and step away.",
-                image_url: "https://placehold.co/600x400/f0f8ff/4682b4?text=White+Flag"
-            },
-            {
-                id: 7,
-                icon: "⚙️",
-                title: `"Fireworks scene"`,
-                meaning: `A fleeting, beautiful memory of love`,
-                tags: ["Japanese", "Korean", "Memory"],
-                full_description: "In East Asian media, the short, intense beauty of fireworks is often used to symbolize a brief but unforgettable romantic moment or a sudden, dramatic confession.",
-                image_url: "https://placehold.co/600x400/000080/ffdab9?text=Fireworks+Night"
-            },
-            {
-                id: 8,
-                icon: "🔴",
-                title: `"Red Thread of Fate"`,
-                meaning: `You're destined to meet no matter what`,
-                tags: ["Chinese", "Japanese", "Destiny"],
-                full_description: "An East Asian belief that the gods tie an invisible red cord around the ankles of those who are destined to meet each other in a certain situation, regardless of time, place, or circumstance.",
-                image_url: "https://placehold.co/600x400/fa8072/8b0000?text=Red+Thread+of+Fate"
-            },
-            {
-                id: 9,
-                icon: "❤️",
-                title: `"SOS"`,
-                meaning: `"The thing keeping you alive and killing you"`,
-                tags: ["English", "Forever Like"],
-                full_description: "A modern interpretation used in romantic contexts, often referring to a person or a feeling that is both necessary for emotional life and intensely painful or difficult, creating a state of constant emotional emergency.",
-                image_url: "https://placehold.co/600x400/ffe4e1/b22222?text=Heart+Icon"
-            },
-            {
-                id: 10,
-                icon: "👆",
-                title: `"Touching forehead or patting head"`,
-                meaning: `A sign of fondness`,
-                tags: ["Japanese", "Confession"],
-                full_description: "A non-verbal action often seen in anime/manga/K-dramas, signifying deep affection, comfort, or a protective gesture. It's a gentle, intimate form of non-verbal confession or affirmation of care.",
-                image_url: "https://placehold.co/600x400/f0f8ff/87cefa?text=Head+Pat"
-            }
-        ];
-
-        // --- BACKGROUND LOGIC ---
         const backgroundUrls = [
-            // New set of URLs provided by the user
-            'https://i.pinimg.com/73x/da/22/29/da2229bc74bde83d8a2213c341deb2e1.jpg',
-            'https://i.pinimg.com/73x/05/55/7f/05557fe78a4329ab861a29e2f6598688.jpg',
-            'https://i.pinimg.com/73x/cc/01/15/cc0115d36223588776b2c018c08a88c4.jpg',
-            'https://i.pinimg.com/73x/82/73/8f/82738f17969ab96336601283d7fcfe7d.jpg',
-            'https://i.pinimg.com/73x/e2/ff/0d/e2ff0d30439c913ca990bce75f7bbd64.jpg',
-            'https://i.pinimg.com/1200x/4b/0f/17/4b0f174b6296389f9417a03d2ba61cc3.jpg',
-            'https://i.pinimg.com/73x/d6/cb/02/d6cb0273364381e6379a77ef590038d4.jpg',
-            'https://i.pinimg.com/73x/e1/f4/63/e1f46381bded7aa0db89b9e5b03b77b3.jpg',
-            'https://i.pinimg.com/73x/43/2a/ef/432aefd19425902e6454d0825a9399f6.jpg'
+            "https://i.pinimg.com/736x/a7/95/f0/a795f0c27c3409bb39cc9c8e2574c18b.jpg",
+            "https://i.pinimg.com/736x/56/b6/c4/56b6c433f997e1923cf8f135c4c207ce.jpg",
+            "https://i.pinimg.com/736x/64/eb/18/64eb1837887b2dcb2b679d613dbc21a6.jpg",
+            "https://i.pinimg.com/736x/56/42/01/564201b4e34df7a461ab68430608067d.jpg",
+            "https://i.pinimg.com/736x/17/c5/a8/17c5a84f409009d36f2abf46792c17c5.jpg",
+            "https://i.pinimg.com/1200x/0b/86/84/0b86840408f8927ceabf48f5bcd17397.jpg",
+            "https://i.pinimg.com/736x/ed/0d/a6/ed0da654f8d5263293f7ef46b275d512.jpg",
+            "https://i.pinimg.com/736x/81/3e/d1/813ed186823e28704558efdbdfaf124a.jpg",
+            "https://i.pinimg.com/736x/cc/db/b6/ccdbb6594f12bb5c1689ae79767d15af.jpg",
+            "https://i.pinimg.com/1200x/c2/3d/d9/c23dd9fe56f0d7c22f069fd9e65e41cc.jpg",
+            "https://i.pinimg.com/736x/d6/ae/b9/d6aeb9b8b75ee334d990bbb42db878b4.jpg",
+            "https://i.pinimg.com/736x/e4/24/d2/e424d2aba1abb1c6391fa69b9d9a0b12.jpg",
+            "https://i.pinimg.com/1200x/4b/f7/53/4bf753ef6a19647d58e411c7d97d3aa8.jpg",
+            "https://i.pinimg.com/736x/ed/4c/ec/ed4cece617da97fa4ab094604fec57b1.jpg",
+            "https://i.pinimg.com/736x/9d/99/61/9d9961d5a46e9233135052bb66d8bb35.jpg",
+            "https://i.pinimg.com/736x/37/43/eb/3743ebe1e151c5290d75a390de04021a.jpg",
+            "https://i.pinimg.com/736x/59/e6/5e/59e65e43aea9d121450fa613f41e4a27.jpg",
+            "https://i.pinimg.com/736x/e2/00/00/e20000d85f0f8f419c5ffacf1cc793d3.jpg",
+            "https://i.pinimg.com/736x/59/a0/5c/59a05cafec60e506c7cdaaef3f4cb8a8.jpg",
+            "https://i.pinimg.com/1200x/7f/4b/8f/7f4b8f6049707c49b10bd35ddd32db8e.jpg",
+            "https://i.pinimg.com/736x/60/69/5e/60695e961a88a2a21ae73f5dae2e31a5.jpg",
+            "https://i.pinimg.com/736x/43/49/96/43499690232163300181e6513581d772.jpg"
         ];
 
-        function setRandomBackground(elementId = 'app-body') {
-            const body = document.getElementById(elementId);
-            if (!body) return;
+        const placeholderImages = [
+            { url: "https://i.pinimg.com/736x/84/23/36/842336f6132856b70c0ae8cc36685457.jpg", desc: "A soft embrace of pastel hues, capturing the quiet stillness of dawn." },
+            { url: "https://i.pinimg.com/1200x/cb/d9/46/cbd94657c5ed0ccfc6fdad208713bde2.jpg", desc: "Ethereal gradients that feel like a gentle whisper in a crowded room." },
+            { url: "https://i.pinimg.com/736x/57/d4/c0/57d4c060a603fb2adfd1b59fe1106c8b.jpg", desc: "The sweet melancholy of a sunbeam dancing on a dusty shelf." },
+            { url: "https://i.pinimg.com/1200x/67/6e/af/676eaf16bac8c0f08b05c62dc9fa47a2.jpg", desc: "Vibrant and cozy textures that remind us of home and warmth." },
+            { url: "https://i.pinimg.com/736x/c6/bf/af/c6bfaf0a9bf20f60dd6ee0372d24e7da.jpg", desc: "A serene landscape of color, perfect for moments of deep reflection." },
+            { url: "https://i.pinimg.com/736x/3c/04/4c/3c044c7974c70bb47a94407e3249779e.jpg", desc: "Tiny details that sparkle like stars in a winter midnight sky." },
+            { url: "https://i.pinimg.com/736x/9c/ff/2e/9cff2ebc1ef56944110916b513201a74.jpg", desc: "The rhythm of light and shadow playing a silent, beautiful melody." },
+            { url: "https://i.pinimg.com/736x/0c/c5/13/0cc513ca71506fe5e0ed3f1f0f6e39f6.jpg", desc: "Delicate and fleeting, like the first snowfall of the season." },
+            { url: "https://i.pinimg.com/736x/1a/34/1a/1a341aa1c5ce03aac8bb9db2f9474ab7.jpg", desc: "A collection of dreams woven together by the threads of time." },
+            { url: "https://i.pinimg.com/736x/92/e0/40/92e040b930ad4be861d27e1de6705719.jpg", desc: "Finding magic in the mundane, and beauty in the everyday chaos." }
+        ];
 
-            // Get a random URL index
-            const randomIndex = Math.floor(Math.random() * backgroundUrls.length);
-            const randomUrl = backgroundUrls[randomIndex];
+        const cardTitles = [
+            "Red Thread", "Ukiyo", "Sakura", "Under Moon", "Koi", "Hoshiai", "Komorebi", "Wabi-sabi", "Natsukashii",
+            "Serenity", "Petrichor", "Limerence", "Ethereal", "Aurora", "Solitude", "Melody", "Nebula", "Whisper",
+            "Bloom", "Radiance", "Silence", "Harmony", "Twilight", "Echo", "Mirage", "Zenith", "Glimmer", "Velvet",
+            "Azure", "Saffron", "Ivory", "Ember", "Frost", "Gilded", "Stardust", "Moonlight", "Ocean", "Forest",
+            "Cloud", "Soul", "Dream", "Spirit", "Vision", "Poem", "Grace", "Wonder", "Crest", "Vail", "Pulse", "Flow",
+            "Chime", "Loom", "Kindle", "Glaze", "Mist", "Breeze", "Dusk", "Dawn", "Spark", "Tide", "Root", "Vine",
+            "Petal", "Dew", "Leaf", "Sun", "Peak", "Valley", "Shore", "Haven", "Solis", "Luna", "Nova", "Aura", "Flux",
+            "Iris", "Onyx", "Pearl", "Ruby", "Jade", "Opal", "Silk", "Mist", "Dust", "Glade", "Hollow", "Dune", "Reef",
+            "Tide", "Drift", "Borealis", "Cinder", "Glitz", "Luster", "Sheen", "Halo", "Arcane", "Mythos", "Relic"
+        ];
+        
+        const cardColors = ["ffcad4", "bde0fe", "a2d2ff", "ffafcc", "ffd6a5", "cdb4db", "caffbf", "fdfcf0", "dee2ff", "e2ece9", "faedcd", "d4a373"];
 
-            // Set the background-image CSS property
-            body.style.backgroundImage = `url('${randomUrl}')`;
+        const getRandomImage = () => backgroundUrls[Math.floor(Math.random() * backgroundUrls.length)];
+        const getRandomColor = () => cardColors[Math.floor(Math.random() * cardColors.length)];
 
-            // Store the current background URL in session storage
-            sessionStorage.setItem('currentBgUrl', randomUrl);
+        function triggerHeartEffect(e) {
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart-particle';
+                heart.innerHTML = '❤';
+                heart.style.left = (e.clientX + (Math.random() * 60 - 30)) + 'px';
+                heart.style.top = (e.clientY + (Math.random() * 60 - 30)) + 'px';
+                heart.style.animationDelay = (Math.random() * 0.5) + 's';
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 2000);
+            }
         }
 
-        // --- FILTERING LOGIC ---
-        let currentFilter = 'all';
+        const toggleFullScreen = () => {
+            const content = document.getElementById('modal-content');
+            const imgContainer = document.getElementById('modal-img-container');
+            content.classList.toggle('is-fullscreen');
+            
+            if (content.classList.contains('is-fullscreen')) {
+                imgContainer.classList.remove('aspect-[4/3]');
+            } else {
+                imgContainer.classList.add('aspect-[4/3]');
+            }
+        };
 
-        function getUniqueTags() {
-            const allTags = meanings.flatMap(m => m.tags);
-            return [...new Set(allTags)];
+        const openModal = (title, desc, placeholderImg, cardBgImg) => {
+            const overlay = document.getElementById('image-modal');
+            const content = document.getElementById('modal-content');
+            
+            content.classList.remove('is-fullscreen');
+            content.style.backgroundImage = `url('${cardBgImg}')`;
+            document.getElementById('modal-image').src = placeholderImg; 
+            document.getElementById('modal-inner-title').textContent = title;
+            document.getElementById('modal-desc').textContent = desc;
+            
+            overlay.style.display = 'flex';
+            overlay.offsetHeight;
+            overlay.classList.add('active');
         }
 
-        function createFilterButtons() {
-            const tags = getUniqueTags();
-            const container = document.getElementById('filter-container');
-
-            tags.forEach(tag => {
-                const button = document.createElement('button');
-                button.setAttribute('data-filter', tag);
-                button.className = 'filter-btn';
-                button.innerHTML = `<span>${tag}</span>`; // Simple text label for tags
-
-                // Assign icon based on filter for better aesthetic
-                let icon = '🔖';
-                if (tag === 'Confession') icon = '💖';
-                else if (tag === 'Goodbye') icon = '👋';
-                else if (tag === 'Memory') icon = '💭';
-                else if (tag === 'Destiny') icon = '💫';
-                else if (tag === 'Forever Like') icon = '💘';
-
-                button.innerHTML = `<span class="mr-1">${icon}</span> ${tag}`;
-
-                button.addEventListener('click', () => {
-                    filterMeanings(tag);
-                });
-                container.appendChild(button);
-            });
+        const closeModal = () => {
+            const overlay = document.getElementById('image-modal');
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                document.getElementById('modal-content').classList.remove('is-fullscreen');
+            }, 300);
         }
 
-        function renderMeanings(filter) {
-            const grid = document.getElementById('meaning-grid');
-            grid.innerHTML = ''; // Clear existing content
-
-            const filteredMeanings = filter === 'all'
-                ? meanings
-                : meanings.filter(m => m.tags.includes(filter));
-
-            filteredMeanings.forEach(meaning => {
-                const card = document.createElement('div');
-                card.className = 'meaning-card';
-                card.setAttribute('data-tags', meaning.tags.join(','));
-                card.setAttribute('data-id', meaning.id);
-                card.onclick = () => openModal(meaning);
-
-                // Create a random background color for the card's inner area (mimicking the image)
-                const randomCardBgUrl = backgroundUrls[Math.floor(Math.random() * backgroundUrls.length)];
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainCanvas = document.getElementById('main-canvas');
+            mainCanvas.style.backgroundImage = `url('${getRandomImage()}')`;
+            
+            const container = document.getElementById('cards-container');
+            
+            for (let i = 0; i < 100; i++) {
+                const title = cardTitles[i] || `Sequence ${i + 1}`;
+                let displayImg;
+                let description;
                 
-                // Card HTML structure
-                card.innerHTML = `
-                    <div class="flex items-start mb-3">
-                        <span class="meaning-card-icon mr-3">${meaning.icon}</span>
-                        <div>
-                            <p class="meaning-card-title">${meaning.title}</p>
-                            <p class="meaning-card-subtitle">${meaning.meaning}</p>
+                if (i < placeholderImages.length) {
+                    displayImg = placeholderImages[i].url;
+                    description = placeholderImages[i].desc;
+                } else {
+                    const hex = getRandomColor();
+                    displayImg = `https://dummyimage.com/800x600/${hex}/ffffff.png&text=${title}`; 
+                    description = "A unique artifact exploring visual depth and the harmony of curated design.";
+                }
+
+                const randomBgImg = getRandomImage();
+                
+                const cardHtml = `
+                    <div class="card group shadow-xl" 
+                         style="background-image: url('${randomBgImg}');"
+                         onclick='openModal("${title}", "${description}", "${displayImg}", "${randomBgImg}")'>
+                        
+                        <div class="w-full aspect-[16/10] overflow-hidden p-6">
+                            <img src="${displayImg}" class="w-full h-full object-cover rounded-2xl shadow-lg group-hover:scale-110 transition duration-1000 border border-white/20" alt="${title}" loading="lazy">
+                        </div>
+                        
+                        <div class="p-5 text-center card-info rounded-b-[1.5rem] mt-auto">
+                            <h2 class="text-xl sm:text-2xl font-black text-gray-900 mb-1 tracking-tighter uppercase italic">${title}</h2>
+                            <p class="text-[8px] font-black text-gray-400 uppercase tracking-[0.5em] opacity-60">Entry ${i+1}</p>
                         </div>
                     </div>
-                    <div class="meaning-card-tags">
-                        ${meaning.tags.join(' / ')}
-                    </div>
                 `;
-                grid.appendChild(card);
-            });
-        }
-
-        function filterMeanings(filter) {
-            currentFilter = filter;
-            const buttons = document.querySelectorAll('.filter-btn');
-            buttons.forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.getAttribute('data-filter') === filter) {
-                    btn.classList.add('active');
-                }
-            });
-            renderMeanings(filter);
-        }
-
-        // --- MODAL LOGIC ---
-
-        function openModal(meaning) {
-            const modal = document.getElementById('meaning-modal');
-            const modalContentContainer = document.getElementById('modal-content-container');
-            
-            // Set Modal Content
-            document.getElementById('modal-title').innerText = meaning.title;
-            document.getElementById('modal-meaning').innerText = meaning.meaning;
-            document.getElementById('modal-description').innerText = meaning.full_description;
-            document.getElementById('modal-tags').innerText = meaning.tags.join(' / ');
-            document.getElementById('modal-image').src = meaning.image_url;
-
-            // Set Random Background on the Modal Content Container
-            // FIX: Corrected typo 'nst' to 'Math.random()'
-            const randomIndex = Math.floor(Math.random() * backgroundUrls.length);
-            const randomUrl = backgroundUrls[randomIndex];
-
-            // Use a specific image for the "pancreas" example to match the user's image, if possible
-            if (meaning.id === 2) {
-                // This URL is a placeholder as I cannot access the actual image URL from the upload,
-                // so I'm using a simple placehold.co link for consistency in the demo.
-                document.getElementById('modal-image').src = 'https://placehold.co/600x400/90c7f0/ffffff?text=I+Want+To+Eat+Your+Pancreas';
+                container.insertAdjacentHTML('beforeend', cardHtml);
             }
-            
-            // Apply the random background style to the modal container itself
-            modalContentContainer.style.backgroundImage = `url('${randomUrl}')`;
-            modalContentContainer.style.backgroundSize = 'cover';
-            modalContentContainer.style.backgroundPosition = 'center';
-            modalContentContainer.style.backgroundAttachment = 'local'; // Should scroll with content
 
-            // Show the modal
-            modal.classList.remove('hidden');
-        }
+            // Simple loader hide logic
+            setTimeout(() => {
+                const loader = document.getElementById('loading-screen');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.visibility = 'hidden', 800);
+            }, 1800); // Show for a short while to be seen
 
-        function closeModal() {
-            const modal = document.getElementById('meaning-modal');
-            modal.classList.add('hidden');
-            // Reset image src to clear any errors
-            document.getElementById('modal-image').src = '';
-        }
-
-        // Close modal on outside click
-        document.getElementById('meaning-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'meaning-modal') {
-                closeModal();
-            }
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeModal();
+            });
         });
-
-
-        // --- INITIALIZATION ---
-        window.onload = function() {
-            // 1. Set the initial random background for the body
-            setRandomBackground();
-
-            // 2. Create filter buttons dynamically
-            createFilterButtons();
-
-            // 3. Render all cards initially
-            renderMeanings('all');
-        }
     </script>
 </body>
 </html>
